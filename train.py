@@ -21,14 +21,10 @@ from torch.utils.data import DataLoader, random_split
 
 
 bd = './data/'
-dir_img = bd + 'train_data/'#'data/imgs/'
-dir_mask = bd + 'train_mask/'#'data/masks/'
-#dir_img = '/home/qchen/Unet-Segmentation-Pytorch-Nest-of-Unets/PhC-C2DH-U373/train_data_ori/'
-#dir_mask = '/home/qchen/Unet-Segmentation-Pytorch-Nest-of-Unets/PhC-C2DH-U373/train_mask_ori/'
-#dir_img = './data/imgs/'
-#dir_mask = './data/masks/'
-test_img = bd + 'test_data/'#'data/imgs/'
-test_mask = bd + 'test_mask/'#'data/masks/' 
+dir_img = bd + 'train_data/'
+dir_mask = bd + 'train_mask/'
+test_img = bd + 'test_data/'
+test_mask = bd + 'test_mask/'
 
 dir_checkpoint = 'checkpoints/'
 
@@ -84,11 +80,7 @@ def train_net(net,
             for batch in train_loader:
                 imgs = batch['image']
                 true_masks = batch['mask']
-                #assert imgs.shape[1] == net.n_channels, \
-                #    f'Network has been defined with {net.n_channels} input channels, ' \
-                #    f'but loaded images have {imgs.shape[1]} channels. Please check that ' \
-                #    'the images are loaded correctly.'
-
+                
                 imgs = imgs.to(device=device, dtype=torch.float32)
                 mask_type = torch.float32 if net.n_classes == 1 else torch.long
                 true_masks = true_masks.to(device=device, dtype=mask_type)
@@ -111,14 +103,9 @@ def train_net(net,
             print('-------------------------Training loss: ', epoch_loss*1.0/len(train_loader))
                 
             if True: #global_step % (n_train // (10 * batch_size)) == 0:
-                #for tag, value in net.named_parameters():
-                #    tag = tag.replace('.', '/')
-                #    writer.add_histogram('weights/' + tag, value.data.cpu().numpy(), global_step)
-                #    writer.add_histogram('grads/' + tag, value.grad.data.cpu().numpy(), global_step)
                 val_score = eval_net(net, val_loader, device)
                 scheduler.step(val_score)
-                #writer.add_scalar('learning_rate', optimizer.param_groups[0]['lr'], global_step)
-
+                
                 if net.n_classes > 1:
                     logging.info('Validation cross entropy: {}'.format(val_score))
                     writer.add_scalar('Loss/test', val_score, global_step)
@@ -126,36 +113,17 @@ def train_net(net,
                     logging.info('Validation Dice Coeff: {}'.format(val_score))
                     writer.add_scalar('Dice/test', val_score, global_step)
 
-                #writer.add_images('images', imgs, global_step)
-                #if net.n_classes == 1:
-                #    writer.add_images('masks/true', true_masks, global_step)
-                #    writer.add_images('masks/pred', torch.sigmoid(masks_pred) > 0.5, global_step)
-            
-        if save_cp and min_loss >  val_score: #min_acc < val_score: # min_loss > epoch_loss*1.0/len(train_loader): #
+                
+        if save_cp and min_loss >  val_score: 
             print('Decreased loss from ', min_loss, ' to ', val_score)
-            #print('Increasing val acc from ', min_acc, ' to ', val_score)
             min_loss = val_score
-            #min_acc = val_score
             
             try:
                 os.mkdir(dir_checkpoint)
                 logging.info('Created checkpoint directory')
             except OSError:
                 pass
-            #torch.save(net.state_dict(),
-            #           dir_checkpoint + f'best_PosWei{pw}.pth')
             torch.save(net.state_dict(), dir_checkpoint + 'best_test_NoWei.pth')
-            logging.info(f'Checkpoint {epoch + 1} saved !')
-
-        if False: #save_cp and epoch%10 == 0 and epoch>0:
-            try:
-                os.mkdir(dir_checkpoint)
-                logging.info('Created checkpoint directory')
-            except OSError:
-                pass
-            #torch.save(net.state_dict(),
-            #           dir_checkpoint + f'best_PosWei{pw}.pth')
-            torch.save(net.state_dict(), dir_checkpoint + 'Epoch_'+str(epoch)+'_test_NoWei.pth')
             logging.info(f'Checkpoint {epoch + 1} saved !')
 
     writer.close()
@@ -209,18 +177,11 @@ if __name__ == '__main__':
     # faster convolutions, but more memory
     # cudnn.benchmark = True
 
-    try:
-        train_net(net=net,
-                  epochs=args.epochs,
-                  batch_size=args.batchsize,
-                  lr=args.lr,
-                  device=device,
-                  img_scale=args.scale,
-                  val_percent=args.val / 100)
-    except KeyboardInterrupt:
-        torch.save(net.state_dict(), 'INTERRUPTED.pth')
-        logging.info('Saved interrupt')
-        try:
-            sys.exit(0)
-        except SystemExit:
-            os._exit(0)
+    train_net(net=net,
+              epochs=args.epochs,
+              batch_size=args.batchsize,
+              lr=args.lr,
+              device=device,
+              img_scale=args.scale,
+              val_percent=args.val / 100)
+    
