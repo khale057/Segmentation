@@ -54,11 +54,11 @@ def predict_img(net,
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', '-m', default='./checkpoints/best_test_NoWei.pth', #best_test.pth',
+    parser.add_argument('--model', '-m', default='./checkpoints/best_test_NoWei.pth', 
                         metavar='FILE',
                         help="Specify the file in which the model is stored")
     parser.add_argument('--input', '-i', metavar='INPUT', nargs='+',
-                        help='filenames of input images')#, required=True)
+                        help='filenames of input images')
 
     parser.add_argument('--output', '-o', metavar='INPUT', nargs='+',
                         help='Filenames of ouput images')
@@ -76,14 +76,12 @@ def get_args():
                         default=1)
     parser.add_argument('--dir', '-dir', 
                         help="dataset dir",
-                        default='/home/qchen/Pytorch-UNet/data/test_data/')#PhC-C2DH-U373/train_data_ori/')#
+                        default='./data/test_data/')
 
     return parser.parse_args()
 
 
 def get_output_filenames(args):
-    #in_files = [args.dir + f for f in args.input]
-    #print(os.listdir(args.dir))
     in_files = [args.dir + f for f in os.listdir(args.dir)]
     out_files = []
 
@@ -107,7 +105,7 @@ def mask_to_image(mask):
 
 if __name__ == "__main__":
     args = get_args()
-    in_files = [args.dir + f for f in os.listdir(args.dir)] #args.input]
+    in_files = [args.dir + f for f in os.listdir(args.dir)] 
     out_files = get_output_filenames(args)
 
     net = UNet(n_channels=3, n_classes=3)
@@ -140,6 +138,4 @@ if __name__ == "__main__":
 
             logging.info("Mask saved to {}".format(out_files[i]))
 
-        if args.viz:
-            logging.info("Visualizing results for image {}, close to continue ...".format(fn))
-            plot_img_and_mask(img, mask)
+
