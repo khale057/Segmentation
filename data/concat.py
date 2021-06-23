@@ -1,38 +1,48 @@
 import sys, os
 from PIL import Image
+import numpy as np
 
-# image pathes to be concatenated into a whole image.
-tt = 'data/test_data/' 
-tt_i = tt+'vol55_recon_00936_RGB_'
-
-size = 256
-
-def make(i):
-    fs = [tt_i+str(i)+'_'+str(k)+'.png' for k in np.arange(0,2560, size)] # get paths to all images to be merged
+def make_h(fs, i):
+    fs = fs
     images = [Image.open(x) for x in fs]
-    total_width = 2560
-    max_height = size
+    widths, heights = zip(*(j.size for j in images))
+    total_width = sum(widths)
+    max_height = max(heights)
     new_im = Image.new('RGB', (total_width, max_height))
     x_offset = 0
-    for im in images:
-        new_im.paste(im, (x_offset,0))
-        x_offset += im.size[0]
-    new_im.save(tt+'v_'+str(i)+'.png')
-
+    for im in range(len(images)):
+        new_im.paste(images[im], (x_offset,0))
+        x_offset += images[im].size[0]
+    new_im.save('image_'+str(i)+'h.jpg')
 
 # concatenate img vertically
-def make_f():
-    fs = [tt+'v_'+str(k)+'.png' for k in np.arange(10)] 
+def make_v(fs, img_name):
+    fs = fs
     images = [Image.open(x) for x in fs]
-    total_width = 2560
-    max_height = 2560
+    widths, heights = zip(*(j.size for j in images))
+    total_width = max(widths)
+    max_height = sum(heights)
     new_im = Image.new('RGB', (total_width, max_height))
     x_offset = 0
     for im in range(len(images)):
         new_im.paste(images[im], (0,x_offset))
         x_offset += images[im].size[1]
-    new_im.save(tt_i+'prediction.png')
+    new_im.save(img_name[:-1]+'.jpg')
 
-for i in np.range(0,2560,size):
-    make(i)
-make_f()
+
+f = 'test_data/'
+#f = 'ck/vol32_recon_00535_RGB_'
+fs = os.listdir(f)
+img_name = fs[0][:22]
+
+f+=img_name
+
+for i in np.arange(512, 2304, 256):
+  fs = [f+str(i)+'_'+str(j)+'_OUT.png' for j in np.arange(0,2560,256)]
+  make_h(fs, i)
+
+
+fs = ['image_'+str(j)+'h.jpg' for j in np.arange(512, 2304, 256)]
+fs.insert(0,'first.jpg')
+fs.append('last.jpg')
+make_v(fs, img_name)
