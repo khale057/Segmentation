@@ -5,3 +5,4 @@ torchvision
 tensorboard
 future
 tqdm
+ipycanvas
