@@ -54,11 +54,11 @@ def predict_img(net,
 def get_args():
     parser = argparse.ArgumentParser(description='Predict masks from input images',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--model', '-m', default='./checkpoints/best_test_NoWei.pth', 
+    parser.add_argument('--model', '-m', default='./checkpoints/best_test_NoWei_BatchSize8_Epoch_40.pth', #best_test_NoWei.pth',
                         metavar='FILE',
                         help="Specify the file in which the model is stored")
     parser.add_argument('--input', '-i', metavar='INPUT', nargs='+',
-                        help='filenames of input images')
+                        help='filenames of input images')#, required=True)
 
     parser.add_argument('--output', '-o', metavar='INPUT', nargs='+',
                         help='Filenames of ouput images')
@@ -76,12 +76,14 @@ def get_args():
                         default=1)
     parser.add_argument('--dir', '-dir', 
                         help="dataset dir",
-                        default='./data/test_data/')
+                        default='/home/qchen/Pytorch-UNet/data/test_data/')#PhC-C2DH-U373/train_data_ori/')#
 
     return parser.parse_args()
 
 
 def get_output_filenames(args):
+    #in_files = [args.dir + f for f in args.input]
+    #print(os.listdir(args.dir))
     in_files = [args.dir + f for f in os.listdir(args.dir)]
     out_files = []
 
@@ -99,13 +101,20 @@ def get_output_filenames(args):
 
 
 def mask_to_image(mask):
-    return Image.fromarray((np.transpose(mask, (1, 2, 0)) * 255).astype(np.uint8))
-    #return Image.fromarray((255*mask).astype(np.uint8))
+    #print(mask.shape)
+    # 3 classes: mask shape (3, size, size)
+    mask= mask*1
+    mask[0,:,:]=mask[0,:,:]*10
+    mask[1,:,:]=mask[1,:,:]*150
+    mask[2,:,:]=mask[2,:,:]*255
+    #return Image.fromarray((np.transpose(mask, (1, 2, 0)) * 255).astype(np.uint8)) # multi-class, 255
+    return Image.fromarray((np.transpose(mask, (1, 2, 0))).astype(np.uint8))
+    #return Image.fromarray((255*mask).astype(np.uint8)) # 2 class
 
 
 if __name__ == "__main__":
     args = get_args()
-    in_files = [args.dir + f for f in os.listdir(args.dir)] 
+    in_files = [args.dir + f for f in os.listdir(args.dir)] #args.input]
     out_files = get_output_filenames(args)
 
     net = UNet(n_channels=3, n_classes=3)
@@ -138,4 +147,6 @@ if __name__ == "__main__":
 
             logging.info("Mask saved to {}".format(out_files[i]))
 
-
+        if args.viz:
+            logging.info("Visualizing results for image {}, close to continue ...".format(fn))
+            plot_img_and_mask(img, mask)
