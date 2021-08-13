@@ -6,3 +6,4 @@ tensorboard
 future
 tqdm
 ipycanvas
+matplotlib
