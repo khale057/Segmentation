@@ -224,6 +224,7 @@ def join_image(filename, width, height, tilesize, output=True):
     # joining vertically
     for i in range(num_rows):
         horizontal_strips = [stripname for stripname in os.listdir(test_dir) if stripname[:2] == "v_"]
+        horizontal_strips = sorted(horizontal_strips)
         images = [Image.open(test_dir + x) for x in horizontal_strips]
         new_im = Image.new('RGB', (num_cols*tilesize, num_rows*tilesize))
         x_offset = 0
