@@ -206,6 +206,7 @@ def join_image(filename, width, height, tilesize, output=True):
         tilename[-5].isdigit() and
         tilename[:len(filename)-4] == filename[:-4]] 
     
+    tiles = sorted(tiles)
     num_rows = int(height / tilesize)
     num_cols = int(width / tilesize)
     
