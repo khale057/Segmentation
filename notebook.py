@@ -185,7 +185,7 @@ def split_image(filename, tilesize):
             for i in range(0, width, tilesize):
                 area = (i, j, i + tilesize, j + tilesize)
                 image = im.crop(area)
-                image.save(filename + "_" + str(j).zfill(digits) + "_" + str(i).zfill(digits) + ".png")
+                image.save(filename[:-4] + "_" + str(j).zfill(digits) + "_" + str(i).zfill(digits) + ".png")
     else:
         print("Error: Image cannot be divided by %s evenly" % tilesize)
         return False        
